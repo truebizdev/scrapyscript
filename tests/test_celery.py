@@ -16,9 +16,11 @@ def celery_job(url):
 
 
 @app.task
-def celery_job_with_custom_settings(url, settings):
+def celery_job_with_custom_settings(url, settings, install_root_handler):
     job = Job(ItemSpider, url=url)
-    return Processor(settings=settings).run(job)
+    return Processor(settings=settings, install_root_handler=install_root_handler).run(
+        job
+    )
 
 
 class TestScrapyScriptCelery:
@@ -32,7 +34,7 @@ class TestScrapyScriptCelery:
         settings["BOT_NAME"] = "alpha"
 
         task = celery_job_with_custom_settings.s(
-            "https://www.python.org", settings
+            "https://www.python.org", settings, False
         ).apply()
         print(task.result[0])
         assert task.result[0]["bot"] == "alpha"

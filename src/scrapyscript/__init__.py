@@ -40,7 +40,7 @@ class Processor(Process):
     Blocks until all have finished.
     """
 
-    def __init__(self, settings=None):
+    def __init__(self, settings=None, install_root_handler=True):
         """
         Parms:
           settings (scrapy.settings.Settings) - settings to apply.  Defaults
@@ -51,6 +51,7 @@ class Processor(Process):
         self.results = Queue(**kwargs)
         self.items = []
         self.settings = settings or Settings()
+        self.install_root_handler = install_root_handler
         dispatcher.connect(self._item_scraped, signals.item_scraped)
 
     def _item_scraped(self, item):
@@ -62,7 +63,10 @@ class Processor(Process):
             requests (Request) - One or more Jobs. All will
                                  be loaded into a single invocation of the reactor.
         """
-        self.crawler = CrawlerProcess(self.settings)
+        self.crawler = CrawlerProcess(
+            settings=self.settings,
+            install_root_handler=self.install_root_handler,
+        )
 
         # crawl can be called multiple times to queue several requests
         for req in requests:
